@@ -382,14 +382,18 @@ export default function UsersPage() {
                               No auctions assigned
                             </span>
                           ) : (
-                            assigned.map((id) => (
-                              <span
-                                key={id}
-                                className="break-all rounded-full bg-emerald-50 px-2.5 py-1 font-mono text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
-                              >
-                                {id}
-                              </span>
-                            ))
+                            assigned.map((id) => {
+                              const assignedAuction = auctions.find((auction) => auction.auctionId === id);
+                              return (
+                                <span
+                                  key={id}
+                                  title={id}
+                                  className="break-all rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                                >
+                                  {assignedAuction ? `${assignedAuction.name} · ${id}` : id}
+                                </span>
+                              );
+                            })
                           )}
                         </div>
                       </div>

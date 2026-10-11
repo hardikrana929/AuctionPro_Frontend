@@ -15,6 +15,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     sessionStorage.removeItem("auctionpro_token");
+    sessionStorage.removeItem("auctionpro_auction_id");
     setUser(null);
   }, []);
 
@@ -67,6 +68,7 @@ export function AuthProvider({ children }) {
       throw new Error("A valid user account is required.");
     }
     sessionStorage.setItem("auctionpro_token", response.data.token);
+    sessionStorage.setItem("auctionpro_auction_id", String(auctionId).trim().toUpperCase());
     setUser(response.data.user);
     return response.data.user;
   };

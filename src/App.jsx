@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout";
+import UserLayout from "./layouts/UserLayout";
+
 import AdminLogin from "./pages/AdminLogin";
 import AdminOverview from "./pages/AdminOverview";
 import AuctionsPage from "./pages/AuctionsPage";
@@ -11,6 +14,7 @@ import PlayersPage from "./pages/PlayersPage";
 import HomePage from "./pages/HomePage";
 import UserLogin from "./pages/UserLogin";
 import UserDashboard from "./pages/UserDashboard";
+import UserProfile from "./pages/UserProfile";
 
 export default function App() {
   return (
@@ -18,11 +22,19 @@ export default function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<UserLogin />} />
       <Route path="/user/login" element={<Navigate to="/login" replace />} />
-
       <Route path="/admin/login" element={<AdminLogin />} />
 
-      <Route element={<ProtectedRoute role="user" />}><Route path="/dashboard" element={<UserDashboard />} /></Route>
+      {/* Protected user workspace */}
+      <Route element={<ProtectedRoute role="user" />}>
+        <Route element={<UserLayout />}>
+          <Route path="/dashboard" element={<UserDashboard />} />
+          <Route path="/manage/teams" element={<TeamsPage />} />
+          <Route path="/manage/players" element={<PlayersPage />} />
+          <Route path="/profile" element={<UserProfile />} />
+        </Route>
+      </Route>
 
+      {/* Protected admin workspace */}
       <Route element={<ProtectedRoute role="admin" />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminOverview />} />

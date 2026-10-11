@@ -4,10 +4,15 @@ import toast from "react-hot-toast";
 import api from "../api/api";
 import PageHeader from "../components/PageHeader";
 import { EmptyState, LoadingState } from "../components/Feedback";
+import { useAuth } from "../context/AuthContext";
 
 const blankForm = { name: "", shortName: "", auctionId: "" };
 
 export default function TeamsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const teamBase = isAdmin ? "/admin/teams" : "/user/teams";
+  const assignedAuctionId = sessionStorage.getItem("auctionpro_auction_id") || "";
   const [teams, setTeams] = useState([]);
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,18 +29,21 @@ export default function TeamsPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [teamResponse, auctionResponse] = await Promise.all([
-        api.get("/admin/teams"),
-        api.get("/admin/auctions"),
-      ]);
+      const teamResponse = await api.get(teamBase);
       setTeams(teamResponse.data.teams || []);
-      setAuctions(auctionResponse.data.auctions || []);
+      if (isAdmin) {
+        const auctionResponse = await api.get("/admin/auctions");
+        setAuctions(auctionResponse.data.auctions || []);
+      } else {
+        setAuctions([]);
+        setAuctionFilter(assignedAuctionId);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Unable to load teams.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [teamBase, isAdmin, assignedAuctionId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -54,7 +62,7 @@ export default function TeamsPage() {
 
   function openCreate() {
     setEditingTeam(null);
-    setForm({ ...blankForm, auctionId: auctionFilter || auctions[0]?.auctionId || "" });
+    setForm({ ...blankForm, auctionId: isAdmin ? (auctionFilter || auctions[0]?.auctionId || "") : assignedAuctionId });
     setLogo(null);
     setPreview("");
     setModalOpen(true);
@@ -97,8 +105,8 @@ export default function TeamsPage() {
 
     try {
       const response = editingTeam
-        ? await api.put(`/admin/teams/${editingTeam._id}`, body, { headers: { "Content-Type": "multipart/form-data" } })
-        : await api.post("/admin/teams", body, { headers: { "Content-Type": "multipart/form-data" } });
+        ? await api.put(`${teamBase}/${editingTeam._id}`, body, { headers: { "Content-Type": "multipart/form-data" } })
+        : await api.post(teamBase, body, { headers: { "Content-Type": "multipart/form-data" } });
       toast.success(response.data.message || "Team saved.");
       resetForm();
       await loadData();
@@ -113,7 +121,7 @@ export default function TeamsPage() {
     if (!window.confirm(`Delete ${team.name}? This cannot be undone.`)) return;
     setDeletingId(team._id);
     try {
-      const response = await api.delete(`/admin/teams/${team._id}`);
+      const response = await api.delete(`${teamBase}/${team._id}`);
       setTeams((current) => current.filter((item) => item._id !== team._id));
       toast.success(response.data.message || "Team deleted.");
     } catch (error) {
@@ -137,10 +145,10 @@ export default function TeamsPage() {
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search teams..." className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900" />
         </label>
-        <select value={auctionFilter} onChange={(e) => setAuctionFilter(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-900">
+        {isAdmin ? <select value={auctionFilter} onChange={(e) => setAuctionFilter(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-900">
           <option value="">All auctions</option>
           {auctions.map((auction) => <option key={auction._id} value={auction.auctionId}>{auction.name}</option>)}
-        </select>
+        </select> : <div className="flex items-center rounded-xl border border-slate-200 px-3 py-3 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">Assigned auction: {assignedAuctionId}</div>}
         <button type="button" onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"><FiPlus /> Add team</button>
       </section>
 
@@ -182,7 +190,7 @@ export default function TeamsPage() {
               <div><label htmlFor="team-name" className="mb-1.5 block text-sm font-medium">Team name *</label><input id="team-name" required minLength={2} maxLength={80} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Porbandar Panthers" className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-950" /></div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div><label htmlFor="team-short-name" className="mb-1.5 block text-sm font-medium">Short name *</label><input id="team-short-name" required minLength={2} maxLength={10} pattern="[A-Za-z0-9]+" value={form.shortName} onChange={(e) => setForm({ ...form, shortName: e.target.value.toUpperCase() })} placeholder="e.g. PP" className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm uppercase outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-950" /></div>
-                <div><label htmlFor="team-auction" className="mb-1.5 block text-sm font-medium">Auction *</label><select id="team-auction" required disabled={Boolean(editingTeam)} value={form.auctionId} onChange={(e) => setForm({ ...form, auctionId: e.target.value })} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"><option value="">Select auction</option>{auctions.map((auction) => <option key={auction._id} value={auction.auctionId}>{auction.name}</option>)}</select></div>
+                {isAdmin ? <div><label htmlFor="team-auction" className="mb-1.5 block text-sm font-medium">Auction *</label><select id="team-auction" required disabled={Boolean(editingTeam)} value={form.auctionId} onChange={(e) => setForm({ ...form, auctionId: e.target.value })} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"><option value="">Select auction</option>{auctions.map((auction) => <option key={auction._id} value={auction.auctionId}>{auction.name}</option>)}</select></div> : <div className="flex items-center rounded-xl bg-slate-50 px-3 py-3 text-sm dark:bg-slate-800">Assigned auction: <strong className="ml-2 break-all">{assignedAuctionId}</strong></div>}
               </div>
               <div>
                 <label htmlFor="team-logo" className="mb-2 block text-sm font-medium">Team logo (optional)</label>
@@ -192,7 +200,7 @@ export default function TeamsPage() {
                 </label>
                 <input id="team-logo" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleLogoChange} className="sr-only" />
               </div>
-              <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end"><button type="button" onClick={resetForm} className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold dark:border-slate-700">Cancel</button><button type="submit" disabled={saving || auctions.length === 0} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? "Saving..." : editingTeam ? "Save changes" : "Create team"}</button></div>
+              <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end"><button type="button" onClick={resetForm} className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold dark:border-slate-700">Cancel</button><button type="submit" disabled={saving || (isAdmin && auctions.length === 0)} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? "Saving..." : editingTeam ? "Save changes" : "Create team"}</button></div>
             </form>
           </section>
         </div>

@@ -4,12 +4,18 @@ import toast from "react-hot-toast";
 import api from "../api/api";
 import PageHeader from "../components/PageHeader";
 import { EmptyState, LoadingState } from "../components/Feedback";
+import { useAuth } from "../context/AuthContext";
 
 const roles = ["Batsman", "Bowler", "All-Rounder", "Wicket-Keeper"];
 const blankForm = { name: "", role: "Batsman", nationality: "India", age: "", basePrice: "100000", auctionId: "", teamId: "" };
 const money = (value) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Number(value || 0));
 
 export default function PlayersPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const playerBase = isAdmin ? "/admin/players" : "/user/players";
+  const teamBase = isAdmin ? "/admin/teams" : "/user/teams";
+  const assignedAuctionId = sessionStorage.getItem("auctionpro_auction_id") || "";
   const [players, setPlayers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [auctions, setAuctions] = useState([]);
@@ -29,20 +35,25 @@ export default function PlayersPage() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [playerResponse, teamResponse, auctionResponse] = await Promise.all([
-        api.get("/admin/players"),
-        api.get("/admin/teams"),
-        api.get("/admin/auctions"),
+      const [playerResponse, teamResponse] = await Promise.all([
+        api.get(playerBase),
+        api.get(teamBase),
       ]);
       setPlayers(playerResponse.data.players || []);
       setTeams(teamResponse.data.teams || []);
-      setAuctions(auctionResponse.data.auctions || []);
+      if (isAdmin) {
+        const auctionResponse = await api.get("/admin/auctions");
+        setAuctions(auctionResponse.data.auctions || []);
+      } else {
+        setAuctions([]);
+        setAuctionFilter(assignedAuctionId);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Unable to load players.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [playerBase, teamBase, isAdmin, assignedAuctionId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -66,7 +77,7 @@ export default function PlayersPage() {
 
   function openCreate() {
     setEditingPlayer(null);
-    setForm({ ...blankForm, auctionId: auctionFilter || auctions[0]?.auctionId || "" });
+    setForm({ ...blankForm, auctionId: isAdmin ? (auctionFilter || auctions[0]?.auctionId || "") : assignedAuctionId });
     setImageFile(null);
     setPreview("");
     setModalOpen(true);
@@ -124,8 +135,8 @@ export default function PlayersPage() {
 
     try {
       const response = editingPlayer
-        ? await api.put(`/admin/players/${editingPlayer._id}`, body, { headers: { "Content-Type": "multipart/form-data" } })
-        : await api.post("/admin/players", body, { headers: { "Content-Type": "multipart/form-data" } });
+        ? await api.put(`${playerBase}/${editingPlayer._id}`, body, { headers: { "Content-Type": "multipart/form-data" } })
+        : await api.post(playerBase, body, { headers: { "Content-Type": "multipart/form-data" } });
       toast.success(response.data.message || "Player saved.");
       resetForm();
       await loadData();
@@ -140,7 +151,7 @@ export default function PlayersPage() {
     if (!window.confirm(`Delete ${player.name}? This cannot be undone.`)) return;
     setDeletingId(player._id);
     try {
-      const response = await api.delete(`/admin/players/${player._id}`);
+      const response = await api.delete(`${playerBase}/${player._id}`);
       setPlayers((current) => current.filter((item) => item._id !== player._id));
       toast.success(response.data.message || "Player deleted.");
     } catch (error) {
@@ -164,7 +175,7 @@ export default function PlayersPage() {
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search players..." className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900" />
         </label>
-        <select value={auctionFilter} onChange={(e) => setAuctionFilter(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-900"><option value="">All auctions</option>{auctions.map((auction) => <option key={auction._id} value={auction.auctionId}>{auction.name}</option>)}</select>
+        {isAdmin ? <select value={auctionFilter} onChange={(e) => setAuctionFilter(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-900"><option value="">All auctions</option>{auctions.map((auction) => <option key={auction._id} value={auction.auctionId}>{auction.name}</option>)}</select> : <div className="flex items-center rounded-xl border border-slate-200 px-3 py-3 text-xs font-semibold text-slate-600 dark:border-slate-700 dark:text-slate-300">Assigned auction: {assignedAuctionId}</div>}
         <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-900"><option value="">All roles</option>{roles.map((role) => <option key={role}>{role}</option>)}</select>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-900"><option value="">All statuses</option><option value="available">Available</option><option value="sold">Sold</option><option value="unsold">Unsold</option></select>
         <button type="button" onClick={openCreate} className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"><FiPlus /> Add player</button>
@@ -217,7 +228,7 @@ export default function PlayersPage() {
                 <div><label htmlFor="player-nationality" className="mb-1.5 block text-sm font-medium">Nationality</label><input id="player-nationality" maxLength={60} value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} placeholder="e.g. India" className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-950" /></div>
                 <div><label htmlFor="player-age" className="mb-1.5 block text-sm font-medium">Age</label><input id="player-age" type="number" min={15} max={60} value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} placeholder="e.g. 24" className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-950" /></div>
                 <div><label htmlFor="player-price" className="mb-1.5 block text-sm font-medium">Base price (₹) *</label><input id="player-price" required type="number" min={0} step={1} value={form.basePrice} onChange={(e) => setForm({ ...form, basePrice: e.target.value })} placeholder="e.g. 100000" className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-950" /></div>
-                <div><label htmlFor="player-auction" className="mb-1.5 block text-sm font-medium">Auction *</label><select id="player-auction" required disabled={Boolean(editingPlayer)} value={form.auctionId} onChange={(e) => setForm({ ...form, auctionId: e.target.value, teamId: "" })} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"><option value="">Select auction</option>{auctions.map((auction) => <option key={auction._id} value={auction.auctionId}>{auction.name}</option>)}</select></div>
+                {isAdmin ? <div><label htmlFor="player-auction" className="mb-1.5 block text-sm font-medium">Auction *</label><select id="player-auction" required disabled={Boolean(editingPlayer)} value={form.auctionId} onChange={(e) => setForm({ ...form, auctionId: e.target.value, teamId: "" })} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"><option value="">Select auction</option>{auctions.map((auction) => <option key={auction._id} value={auction.auctionId}>{auction.name}</option>)}</select></div> : <div className="flex items-center rounded-xl bg-slate-50 px-3 py-3 text-sm dark:bg-slate-800">Assigned auction: <strong className="ml-2 break-all">{assignedAuctionId}</strong></div>}
                 <div className="sm:col-span-2"><label htmlFor="player-team" className="mb-1.5 block text-sm font-medium">Team (optional)</label><select id="player-team" value={form.teamId} onChange={(e) => setForm({ ...form, teamId: e.target.value })} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-950"><option value="">No team assigned</option>{formTeams.map((team) => <option key={team._id} value={team._id}>{team.name} ({team.shortName})</option>)}</select></div>
               </div>
               <div>
@@ -228,7 +239,7 @@ export default function PlayersPage() {
                 </label>
                 <input id="player-image" type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageChange} className="sr-only" />
               </div>
-              <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end"><button type="button" onClick={resetForm} className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold dark:border-slate-700">Cancel</button><button type="submit" disabled={saving || auctions.length === 0} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? "Saving..." : editingPlayer ? "Save changes" : "Create player"}</button></div>
+              <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end"><button type="button" onClick={resetForm} className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold dark:border-slate-700">Cancel</button><button type="submit" disabled={saving || (isAdmin && auctions.length === 0)} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? "Saving..." : editingPlayer ? "Save changes" : "Create player"}</button></div>
             </form>
           </section>
         </div>
