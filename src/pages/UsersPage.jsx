@@ -11,6 +11,7 @@ import {
   FiX,
   FiKey,
   FiUsers,
+  FiTrash2,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 
@@ -224,6 +225,29 @@ export default function UsersPage() {
     }
   }
 
+  async function handleDeleteUser(user) {
+    const confirmed = window.confirm(
+      `Delete user "${user.username}"? They will immediately lose access to AuctionPro. This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setBusyKey(`delete:${user._id}`);
+    try {
+      await api.delete(`/admin/users/${user._id}`);
+      setUsers((current) => current.filter((item) => item._id !== user._id));
+      setSelectedAuction((current) => {
+        const next = { ...current };
+        delete next[user._id];
+        return next;
+      });
+      toast.success(`User "${user.username}" deleted.`);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Unable to delete user.");
+    } finally {
+      setBusyKey("");
+    }
+  }
+
   function closeCredentials() {
     setCredentials(null);
     setShowGeneratedPassword(false);
@@ -348,7 +372,15 @@ export default function UsersPage() {
             {users.map((user) => {
               const assigned = user.assignedAuctionIds || [];
               const availableAuctions = auctions.filter(
-                (auction) => !assigned.includes(auction.auctionId),
+                (auction) =>
+                  !assigned.includes(auction.auctionId) &&
+                  !users.some(
+                    (other) =>
+                      other._id !== user._id &&
+                      (other.assignedAuctionIds || []).includes(
+                        auction.auctionId,
+                      ),
+                  ),
               );
               const selected = selectedAuction[user._id] || "";
               const assignmentBusy = busyKey === `${user._id}:${selected}`;
@@ -383,14 +415,18 @@ export default function UsersPage() {
                             </span>
                           ) : (
                             assigned.map((id) => {
-                              const assignedAuction = auctions.find((auction) => auction.auctionId === id);
+                              const assignedAuction = auctions.find(
+                                (auction) => auction.auctionId === id,
+                              );
                               return (
                                 <span
                                   key={id}
                                   title={id}
                                   className="break-all rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                                 >
-                                  {assignedAuction ? `${assignedAuction.name} · ${id}` : id}
+                                  {assignedAuction
+                                    ? `${assignedAuction.name} · ${id}`
+                                    : id}
                                 </span>
                               );
                             })
@@ -420,11 +456,31 @@ export default function UsersPage() {
                           className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900 outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                         >
                           <option value="">Select an auction...</option>
-                          {auctions.map((auction) => (
-                            <option key={auction._id} value={auction.auctionId}>
-                              {auction.name} — {auction.auctionId}
-                            </option>
-                          ))}
+                          {auctions.map((auction) => {
+                            const assignedToOtherUser = users.some(
+                              (other) =>
+                                other._id !== user._id &&
+                                (other.assignedAuctionIds || []).includes(
+                                  auction.auctionId,
+                                ),
+                            );
+                            return (
+                              <option
+                                key={auction._id}
+                                value={auction.auctionId}
+                                disabled={
+                                  assignedToOtherUser &&
+                                  !assigned.includes(auction.auctionId)
+                                }
+                              >
+                                {auction.name} — {auction.auctionId}
+                                {assignedToOtherUser &&
+                                !assigned.includes(auction.auctionId)
+                                  ? " (already assigned)"
+                                  : ""}
+                              </option>
+                            );
+                          })}
                         </select>
 
                         <button
@@ -451,6 +507,18 @@ export default function UsersPage() {
                           Remove
                         </button>
                       </div>
+
+                      <button
+                        type="button"
+                        disabled={busyKey === `delete:${user._id}`}
+                        onClick={() => handleDeleteUser(user)}
+                        className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                      >
+                        <FiTrash2 />
+                        {busyKey === `delete:${user._id}`
+                          ? "Deleting..."
+                          : "Delete user"}
+                      </button>
 
                       {availableAuctions.length === 0 &&
                         auctions.length > 0 && (

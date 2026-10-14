@@ -4,7 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./layouts/AdminLayout";
 import UserLayout from "./layouts/UserLayout";
 
-import AdminLogin from "./pages/AdminLogin";
+import LoginPage from "./pages/LoginPage";
 import AdminOverview from "./pages/AdminOverview";
 import AuctionsPage from "./pages/AuctionsPage";
 import CreateAuction from "./pages/CreateAuction";
@@ -12,17 +12,18 @@ import UsersPage from "./pages/UsersPage";
 import TeamsPage from "./pages/TeamsPage";
 import PlayersPage from "./pages/PlayersPage";
 import HomePage from "./pages/HomePage";
-import UserLogin from "./pages/UserLogin";
 import UserDashboard from "./pages/UserDashboard";
 import UserProfile from "./pages/UserProfile";
+import PublicPlayerRegistration from "./pages/PublicPlayerRegistration";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<UserLogin />} />
+      <Route path="/register-player/:token" element={<PublicPlayerRegistration />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route path="/user/login" element={<Navigate to="/login" replace />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/login" element={<LoginPage />} />
 
       {/* Protected user workspace */}
       <Route element={<ProtectedRoute role="user" />}>
