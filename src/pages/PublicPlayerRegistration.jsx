@@ -26,6 +26,7 @@ export default function PublicPlayerRegistration() {
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
+    role: "",
     birthdate: "",
     contactNo: "",
     whatsappNo: "",
@@ -191,6 +192,27 @@ export default function PublicPlayerRegistration() {
                     autoComplete="family-name"
                     required
                   />
+                </span>
+              </label>
+              <label className="sm:col-span-2">
+                <span className={labelClass}>Player role *</span>
+                <select
+                  className={inputClass}
+                  name="role"
+                  value={form.role}
+                  onChange={change}
+                  required
+                >
+                  <option value="" disabled>
+                    Select your playing role
+                  </option>
+                  <option value="Batsman">Batsman</option>
+                  <option value="Bowler">Bowler</option>
+                  <option value="All-Rounder">All-Rounder</option>
+                  <option value="Wicket-Keeper">Wicket-Keeper</option>
+                </select>
+                <span className="mt-1 block text-xs text-slate-500">
+                  Choose the role that best describes your playing style.
                 </span>
               </label>
               <label>
