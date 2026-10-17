@@ -15,6 +15,8 @@ import HomePage from "./pages/HomePage";
 import UserDashboard from "./pages/UserDashboard";
 import UserProfile from "./pages/UserProfile";
 import PublicPlayerRegistration from "./pages/PublicPlayerRegistration";
+import LiveAuctionPage from "./pages/LiveAuctionPage";
+import FeedbackPage from "./pages/FeedbackPage";
 
 export default function App() {
   return (
@@ -32,6 +34,8 @@ export default function App() {
           <Route path="/manage/teams" element={<TeamsPage />} />
           <Route path="/manage/players" element={<PlayersPage />} />
           <Route path="/profile" element={<UserProfile />} />
+          <Route path="/live-auction" element={<LiveAuctionPage />} />
+          <Route path="/feedback" element={<FeedbackPage />} />
         </Route>
       </Route>
 
@@ -44,6 +48,8 @@ export default function App() {
           <Route path="users" element={<UsersPage />} />
           <Route path="teams" element={<TeamsPage />} />
           <Route path="players" element={<PlayersPage />} />
+          <Route path="live-auction/:auctionId" element={<LiveAuctionPage />} />
+          <Route path="feedback" element={<FeedbackPage />} />
         </Route>
       </Route>
 

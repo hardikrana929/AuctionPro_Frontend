@@ -3,7 +3,6 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 import {
   FiActivity,
-  FiBell,
   FiChevronLeft,
   FiChevronRight,
   FiGrid,
@@ -16,12 +15,14 @@ import {
   FiFlag,
   FiX,
   FiPlusCircle,
+  FiMessageSquare,
 } from "react-icons/fi";
 
 import { MdEmojiEvents } from "react-icons/md";
 
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import NotificationBell from "../components/NotificationBell";
 
 const navigation = [
   { label: "Overview", to: "/admin", icon: FiGrid },
@@ -34,6 +35,7 @@ const navigation = [
   { label: "Users", to: "/admin/users", icon: FiUsers },
   { label: "Teams", to: "/admin/teams", icon: FiFlag },
   { label: "Players", to: "/admin/players", icon: FiUser },
+  { label: "Feedback", to: "/admin/feedback", icon: FiMessageSquare },
 ];
 
 export default function AdminLayout() {
@@ -248,14 +250,7 @@ export default function AdminLayout() {
               Admin access
             </span>
 
-            <button
-              type="button"
-              aria-label="Notifications"
-              title="Notifications (coming in a later group)"
-              className="rounded-xl p-2.5 text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-            >
-              <FiBell size={19} />
-            </button>
+            <NotificationBell />
 
             <button
               type="button"

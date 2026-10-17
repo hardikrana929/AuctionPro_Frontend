@@ -11,14 +11,19 @@ import {
   FiSun,
   FiChevronLeft,
   FiChevronRight,
+  FiMessageSquare,
+  FiActivity,
 } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import NotificationBell from "../components/NotificationBell";
 
 const links = [
   { label: "Dashboard", to: "/dashboard", icon: FiGrid },
   { label: "Manage Teams", to: "/manage/teams", icon: FiUsers },
   { label: "Manage Players", to: "/manage/players", icon: FiUser },
+  { label: "Live Bidding", to: "/live-auction", icon: FiActivity },
+  { label: "Feedback", to: "/feedback", icon: FiMessageSquare },
   { label: "Profile", to: "/profile", icon: FiUser },
 ];
 
@@ -209,6 +214,7 @@ export default function UserLayout() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
+            <NotificationBell />
             <span className="hidden max-w-36 truncate text-sm font-medium sm:block">
               {user?.username}
             </span>
