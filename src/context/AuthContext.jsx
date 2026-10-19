@@ -14,13 +14,16 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const logout = useCallback(() => {
+    localStorage.removeItem("auctionpro_token");
     sessionStorage.removeItem("auctionpro_token");
+    localStorage.removeItem("auctionpro_auction_id");
     sessionStorage.removeItem("auctionpro_auction_id");
     setUser(null);
   }, []);
 
   const refreshUser = useCallback(async () => {
-    const token = sessionStorage.getItem("auctionpro_token");
+    const token = localStorage.getItem("auctionpro_token") || sessionStorage.getItem("auctionpro_token");
+    if (token && !localStorage.getItem("auctionpro_token")) localStorage.setItem("auctionpro_token", token);
     if (!token) {
       setUser(null);
       setLoading(false);
@@ -31,13 +34,15 @@ export function AuthProvider({ children }) {
       const response = await api.get("/auth/me");
       const currentUser = response.data.user;
       if (!["admin", "user"].includes(currentUser?.role)) {
-        sessionStorage.removeItem("auctionpro_token");
+        localStorage.removeItem("auctionpro_token");
+    sessionStorage.removeItem("auctionpro_token");
         setUser(null);
       } else {
         setUser(currentUser);
       }
     } catch {
-      sessionStorage.removeItem("auctionpro_token");
+      localStorage.removeItem("auctionpro_token");
+    sessionStorage.removeItem("auctionpro_token");
       setUser(null);
     } finally {
       setLoading(false);
@@ -53,7 +58,8 @@ export function AuthProvider({ children }) {
     if (!response.data?.token || response.data?.user?.role !== "admin") {
       throw new Error("An Admin account is required to access this dashboard.");
     }
-    sessionStorage.setItem("auctionpro_token", response.data.token);
+    localStorage.setItem("auctionpro_token", response.data.token);
+    sessionStorage.removeItem("auctionpro_token");
     setUser(response.data.user);
     return response.data.user;
   };
@@ -67,8 +73,10 @@ export function AuthProvider({ children }) {
     if (!response.data?.token || response.data?.user?.role !== "user") {
       throw new Error("A valid user account is required.");
     }
-    sessionStorage.setItem("auctionpro_token", response.data.token);
-    sessionStorage.setItem("auctionpro_auction_id", String(auctionId).trim().toUpperCase());
+    localStorage.setItem("auctionpro_token", response.data.token);
+    sessionStorage.removeItem("auctionpro_token");
+    localStorage.setItem("auctionpro_auction_id", String(auctionId).trim().toUpperCase());
+    sessionStorage.removeItem("auctionpro_auction_id");
     setUser(response.data.user);
     return response.data.user;
   };

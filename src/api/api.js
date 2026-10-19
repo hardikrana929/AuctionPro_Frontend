@@ -9,7 +9,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-    const token = sessionStorage.getItem("auctionpro_token");
+    const token = localStorage.getItem("auctionpro_token") || sessionStorage.getItem("auctionpro_token");
 
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
