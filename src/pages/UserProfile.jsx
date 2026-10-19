@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 
 export default function UserProfile() {
   const { user } = useAuth();
-  const auctionId = sessionStorage.getItem("auctionpro_auction_id") || "";
+  const auctionId = localStorage.getItem("auctionpro_auction_id") || sessionStorage.getItem("auctionpro_auction_id") || "";
 
   const rows = [
     { label: "Username", value: user?.username || "—", icon: FiUser },

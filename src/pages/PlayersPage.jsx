@@ -39,7 +39,7 @@ export default function PlayersPage() {
   const playerBase = isAdmin ? "/admin/players" : "/user/players";
   const teamBase = isAdmin ? "/admin/teams" : "/user/teams";
   const assignedAuctionId =
-    sessionStorage.getItem("auctionpro_auction_id") || "";
+    localStorage.getItem("auctionpro_auction_id") || sessionStorage.getItem("auctionpro_auction_id") || "";
   const [players, setPlayers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [auctions, setAuctions] = useState([]);

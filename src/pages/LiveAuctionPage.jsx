@@ -15,14 +15,14 @@ export default function LiveAuctionPage() {
   const params = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const auctionId = String(params.auctionId || sessionStorage.getItem("auctionpro_auction_id") || "").toUpperCase();
+  const auctionId = String(params.auctionId || (localStorage.getItem("auctionpro_auction_id") || sessionStorage.getItem("auctionpro_auction_id")) || "").toUpperCase();
   const isAdmin = user?.role === "admin";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTeam, setSelectedTeam] = useState("");
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState({ bids: [], sold: [], unsold: [] });
-  const token = sessionStorage.getItem("auctionpro_token");
+  const token = localStorage.getItem("auctionpro_token") || sessionStorage.getItem("auctionpro_token");
 
   const loadState = useCallback(async (showSpinner = false) => {
     if (!auctionId) {
@@ -47,7 +47,7 @@ export default function LiveAuctionPage() {
   useEffect(() => {
     loadState(true);
     const interval = window.setInterval(() => loadState(false), 8000);
-    const socket = io(import.meta.env.SOCKET_URL || import.meta.env.API_URL?.replace(/\/api\/?$/, "") || "http://localhost:5000", {
+    const socket = io(import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "http://localhost:5000", {
       auth: { token },
       transports: ["websocket", "polling"],
     });
@@ -108,7 +108,7 @@ export default function LiveAuctionPage() {
         {[{ label: "Auction status", value: session?.status || "idle" }, { label: "Players remaining", value: data.availablePlayers?.length || 0 }, { label: "Players sold", value: history.sold?.length || 0 }].map((item) => <article key={item.label} className={`${cardClass} p-5`}><p className="text-sm text-slate-500 dark:text-slate-400">{item.label}</p><p className="mt-2 text-2xl font-black capitalize">{item.value}</p></article>)}
       </section>
 
-      {isAdmin && <section className={`${cardClass} flex flex-wrap items-center gap-3 p-4`}>
+      {<section className={`${cardClass} flex flex-wrap items-center gap-3 p-4`}>
         {session?.status !== "live" ? <button disabled={busy || session?.status === "completed"} onClick={() => runAction("start")} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-50"><FiPlay /> Start / Resume bidding</button> : <button disabled={busy} onClick={() => runAction("pause")} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-bold text-white disabled:opacity-50"><FiPause /> Pause bidding</button>}
         <button disabled={busy || session?.status !== "live" || Boolean(player)} onClick={() => runAction("next-player")} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-50"><FiUsers /> Select next player</button>
         <button disabled={busy || !player || !session?.leadingTeamId} onClick={() => runAction("sold")} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-50"><FiCheckCircle /> Mark sold</button>
@@ -124,9 +124,9 @@ export default function LiveAuctionPage() {
               <p className="text-sm text-slate-500 dark:text-slate-400">Player role</p><p className="mt-1 font-semibold">{player.role}</p>
               <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Base price</p><p className="mt-1 font-semibold">{money(player.basePrice)}</p>
               <div className="mt-5 rounded-2xl bg-gradient-to-br from-[#101b3a] to-[#39206a] p-5 text-white"><p className="text-xs font-bold uppercase tracking-wider text-blue-200">Current bid</p><p className="mt-2 text-3xl font-black sm:text-4xl">{money(latestBid?.amount || player.basePrice)}</p><p className="mt-2 text-sm text-blue-100">{leadingTeam?.name || "No team has bid yet"}</p><p className="mt-3 text-xs text-blue-100/80">Next valid bid: {money(nextBid)} · Increment: {money(data.auction.bidIncrement)}</p></div>
-              {!isAdmin && <form onSubmit={placeBid} className="mt-5 space-y-3"><label className="block text-sm font-semibold">Bid as team<select value={selectedTeam} onChange={(event) => setSelectedTeam(event.target.value)} required className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-950"><option value="">Select your team</option>{teams.map((team) => <option key={team._id} value={team._id}>{team.name} · Remaining {money(team.remainingBudget)}</option>)}</select></label><button type="submit" disabled={busy || session?.status !== "live" || !player} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-bold text-white hover:bg-blue-700 disabled:opacity-50">Place bid · {money(nextBid)}</button></form>}
+              {<form onSubmit={placeBid} className="mt-5 space-y-3"><label className="block text-sm font-semibold">Bid as team<select value={selectedTeam} onChange={(event) => setSelectedTeam(event.target.value)} required className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm dark:border-slate-700 dark:bg-slate-950"><option value="">Select your team</option>{teams.map((team) => <option key={team._id} value={team._id}>{team.name} · Remaining {money(team.remainingBudget)}</option>)}</select></label><button type="submit" disabled={busy || session?.status !== "live" || !player} className="w-full rounded-xl bg-blue-600 px-4 py-3 font-bold text-white hover:bg-blue-700 disabled:opacity-50">Place bid · {money(nextBid)}</button></form>}
             </div>
-          </div> : <div className="p-10"><EmptyState title="No active player" description={isAdmin ? "Start bidding, then select the next available player." : "The auctioneer will select a player shortly. This page refreshes automatically."} /></div>}
+          </div> : <div className="p-10"><EmptyState title="No active player" description={"Start bidding, then select the next available player."} /></div>}
         </article>
 
         <aside className="space-y-6">

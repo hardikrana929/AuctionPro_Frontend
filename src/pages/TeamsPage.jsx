@@ -12,7 +12,7 @@ export default function TeamsPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const teamBase = isAdmin ? "/admin/teams" : "/user/teams";
-  const assignedAuctionId = sessionStorage.getItem("auctionpro_auction_id") || "";
+  const assignedAuctionId = localStorage.getItem("auctionpro_auction_id") || sessionStorage.getItem("auctionpro_auction_id") || "";
   const [teams, setTeams] = useState([]);
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);

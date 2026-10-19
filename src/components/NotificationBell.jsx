@@ -23,7 +23,7 @@ export default function NotificationBell() {
     load();
     const interval = window.setInterval(load, 30000);
     const token = sessionStorage.getItem("auctionpro_token");
-    const socketUrl = import.meta.env.SOCKET_URL || import.meta.env.API_URL?.replace(/\/api\/?$/, "") || "http://localhost:5000";
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "http://localhost:5000";
     const socket = token ? io(socketUrl, { auth: { token }, transports: ["websocket", "polling"] }) : null;
     socket?.on("notification:new", () => load());
     return () => {
