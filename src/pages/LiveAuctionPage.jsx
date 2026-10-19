@@ -47,7 +47,7 @@ export default function LiveAuctionPage() {
   useEffect(() => {
     loadState(true);
     const interval = window.setInterval(() => loadState(false), 8000);
-    const socket = io(import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "http://localhost:5000", {
+    const socket = io(import.meta.env.SOCKET_URL || import.meta.env.API_URL?.replace(/\/api\/?$/, "") || "http://localhost:5000", {
       auth: { token },
       transports: ["websocket", "polling"],
     });
