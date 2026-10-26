@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FiMail, FiShield, FiRefreshCw, FiLock } from "react-icons/fi";
 import toast from "react-hot-toast";
 import api, { setSiteVerificationToken } from "../api/api";
@@ -9,6 +9,7 @@ export default function SiteOtpGate({ onVerified }) {
   const [otp, setOtp] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const initialSendStarted = useRef(false);
 
   const sendOtp = async () => {
     setBusy(true); setError("");
@@ -22,7 +23,12 @@ export default function SiteOtpGate({ onVerified }) {
     } finally { setBusy(false); }
   };
 
-  useEffect(() => { sendOtp(); }, []);
+  useEffect(() => {
+    // React StrictMode mounts effects twice in development; avoid duplicate OTP requests.
+    if (initialSendStarted.current) return;
+    initialSendStarted.current = true;
+    sendOtp();
+  }, []);
 
   const verify = async (event) => {
     event.preventDefault(); setBusy(true); setError("");
