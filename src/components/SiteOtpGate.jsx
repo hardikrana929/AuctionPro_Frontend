@@ -44,7 +44,8 @@ export default function SiteOtpGate({ onVerified }) {
         setCooldown(e.response.data.retryAfterSeconds);
         setInfo("A code was sent recently. Check your inbox (and spam folder).");
       } else {
-        const message = describeError(e, "Could not send OTP. Please try again later.");
+        const reason = e.response?.data?.reason;
+        const message = describeError(e, "Could not send OTP. Please try again later.") + (reason ? ` (reason: ${reason})` : "");
         setError(message); toast.error(message);
       }
     } finally { setBusy(false); }
