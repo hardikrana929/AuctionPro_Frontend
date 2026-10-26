@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
 import { FiActivity, FiArrowLeft, FiPause, FiPlay, FiRefreshCw, FiCheckCircle, FiXCircle, FiUsers } from "react-icons/fi";
-import api from "../api/api";
+import api, { getSiteVerificationToken } from "../api/api";
 import { useAuth } from "../context/AuthContext";
 import PageHeader from "../components/PageHeader";
 import { EmptyState, LoadingState } from "../components/Feedback";
@@ -48,7 +48,7 @@ export default function LiveAuctionPage() {
     loadState(true);
     const interval = window.setInterval(() => loadState(false), 8000);
     const socket = io(import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "http://localhost:5000", {
-      auth: { token },
+      auth: { token, siteVerificationToken: getSiteVerificationToken() },
       transports: ["websocket", "polling"],
     });
     socket.on("connect", () => socket.emit("auction:join", auctionId));

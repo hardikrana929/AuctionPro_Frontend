@@ -17,8 +17,12 @@ import UserProfile from "./pages/UserProfile";
 import PublicPlayerRegistration from "./pages/PublicPlayerRegistration";
 import LiveAuctionPage from "./pages/LiveAuctionPage";
 import FeedbackPage from "./pages/FeedbackPage";
+import { useState } from "react";
+import SiteOtpGate from "./components/SiteOtpGate";
 
 export default function App() {
+  const [siteVerified, setSiteVerified] = useState(false);
+  if (!siteVerified) return <SiteOtpGate onVerified={() => setSiteVerified(true)} />;
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />

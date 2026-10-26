@@ -1,5 +1,10 @@
 import axios from "axios";
 
+let siteVerificationToken = null;
+
+export const setSiteVerificationToken = (token) => { siteVerificationToken = token || null; };
+export const getSiteVerificationToken = () => siteVerificationToken;
+
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
     headers: {
@@ -13,6 +18,9 @@ api.interceptors.request.use((config) => {
 
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+    }
+    if (siteVerificationToken) {
+        config.headers["X-Site-Verification"] = siteVerificationToken;
     }
 
     return config;

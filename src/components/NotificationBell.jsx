@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
-import api from "../api/api";
+import api, { getSiteVerificationToken } from "../api/api";
 
 export default function NotificationBell() {
   const [notifications, setNotifications] = useState([]);
@@ -24,7 +24,7 @@ export default function NotificationBell() {
     const interval = window.setInterval(load, 30000);
     const token = sessionStorage.getItem("auctionpro_token");
     const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "http://localhost:5000";
-    const socket = token ? io(socketUrl, { auth: { token }, transports: ["websocket", "polling"] }) : null;
+    const socket = token ? io(socketUrl, { auth: { token, siteVerificationToken: getSiteVerificationToken() }, transports: ["websocket", "polling"] }) : null;
     socket?.on("notification:new", () => load());
     return () => {
       window.clearInterval(interval);
