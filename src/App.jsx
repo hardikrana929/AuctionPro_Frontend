@@ -17,11 +17,20 @@ import UserProfile from "./pages/UserProfile";
 import PublicPlayerRegistration from "./pages/PublicPlayerRegistration";
 import LiveAuctionPage from "./pages/LiveAuctionPage";
 import FeedbackPage from "./pages/FeedbackPage";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SiteOtpGate from "./components/SiteOtpGate";
+import { SITE_LOCKED_EVENT, getSiteVerificationToken } from "./api/api";
 
 export default function App() {
-  const [siteVerified, setSiteVerified] = useState(false);
+  const [siteVerified, setSiteVerified] = useState(() => Boolean(getSiteVerificationToken()));
+
+  // Re-lock the site when the API reports that the OTP session expired.
+  useEffect(() => {
+    const lock = () => setSiteVerified(false);
+    window.addEventListener(SITE_LOCKED_EVENT, lock);
+    return () => window.removeEventListener(SITE_LOCKED_EVENT, lock);
+  }, []);
+
   if (!siteVerified) return <SiteOtpGate onVerified={() => setSiteVerified(true)} />;
   return (
     <Routes>

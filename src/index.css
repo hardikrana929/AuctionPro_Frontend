@@ -55,19 +55,45 @@ button:disabled {
 
 
 /* Site-wide email OTP gate: shown before any AuctionPro route. */
-.site-otp-page{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at top left,rgba(59,130,246,.20),transparent 42%),radial-gradient(ellipse at bottom right,rgba(139,92,246,.18),transparent 40%),#080d1a;color:#f8fafc;font-family:inherit}
-.site-otp-card{width:min(100%,440px);padding:clamp(24px,5vw,40px);border:1px solid rgba(148,163,184,.24);border-radius:24px;background:rgba(15,23,42,.88);box-shadow:0 24px 80px rgba(0,0,0,.38);backdrop-filter:blur(18px)}
-.site-otp-logo{width:54px;height:54px;display:grid;place-items:center;border-radius:16px;background:linear-gradient(135deg,#2563eb,#7c3aed);font-size:25px;margin-bottom:24px}
-.site-otp-eyebrow{font-size:11px;letter-spacing:.18em;font-weight:800;color:#93c5fd;margin:0 0 9px}
-.site-otp-card h1{font-size:clamp(25px,5vw,32px);font-weight:800;letter-spacing:-.04em;margin:0}
-.site-otp-description{color:#aab7cc;line-height:1.65;font-size:14px;margin:12px 0 22px}
-.site-otp-email{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1px solid rgba(148,163,184,.2);border-radius:12px;background:rgba(30,41,59,.72);font-size:13px;color:#dbeafe;margin-bottom:22px;overflow-wrap:anywhere}
-.site-otp-email svg{flex-shrink:0;color:#93c5fd}
-.site-otp-card form label{display:block;font-size:13px;font-weight:650;margin-bottom:8px;color:#e2e8f0}
-.site-otp-card form input{width:100%;box-sizing:border-box;background:#080f20;border:1px solid #334155;border-radius:12px;padding:14px;color:#fff;font-size:19px;letter-spacing:.28em;outline:none}
-.site-otp-card form input:focus{border-color:#60a5fa;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
-.site-otp-submit{width:100%;margin-top:15px;border:0;border-radius:12px;padding:14px 16px;display:flex;justify-content:center;align-items:center;gap:9px;background:linear-gradient(100deg,#2563eb,#7c3aed);color:white;font-weight:750;cursor:pointer}
+/* ---------- Site OTP gate: light + dark (follows the app's .dark class) ---------- */
+.site-otp-page{
+  --otp-bg:#eef2f9; --otp-glow1:rgba(59,130,246,.16); --otp-glow2:rgba(139,92,246,.13);
+  --otp-card:rgba(255,255,255,.94); --otp-card-border:#dbe3ef; --otp-shadow:0 24px 70px rgba(30,41,59,.14);
+  --otp-text:#0f172a; --otp-muted:#475569; --otp-label:#1e293b; --otp-eyebrow:#2563eb;
+  --otp-field-bg:#ffffff; --otp-field-border:#cbd5e1; --otp-field-text:#0f172a; --otp-placeholder:#64748b;
+  --otp-chip-bg:#f1f5f9; --otp-chip-border:#dbe3ef; --otp-chip-text:#1e3a8a; --otp-chip-icon:#2563eb;
+  --otp-link:#2563eb; --otp-foot:#64748b; --otp-error:#dc2626; --otp-info:#15803d; --otp-focus:#3b82f6; --otp-focus-ring:rgba(59,130,246,.22);
+  --otp-toggle-bg:rgba(255,255,255,.9); --otp-toggle-border:#cbd5e1; --otp-toggle-text:#334155;
+  position:relative;min-height:100vh;display:grid;place-items:center;padding:24px;color:var(--otp-text);font-family:inherit;color-scheme:light;
+  background:radial-gradient(ellipse at top left,var(--otp-glow1),transparent 42%),radial-gradient(ellipse at bottom right,var(--otp-glow2),transparent 40%),var(--otp-bg);
+}
+.dark .site-otp-page{
+  --otp-bg:#080d1a; --otp-glow1:rgba(59,130,246,.20); --otp-glow2:rgba(139,92,246,.18);
+  --otp-card:rgba(15,23,42,.88); --otp-card-border:rgba(148,163,184,.24); --otp-shadow:0 24px 80px rgba(0,0,0,.38);
+  --otp-text:#f8fafc; --otp-muted:#aab7cc; --otp-label:#e2e8f0; --otp-eyebrow:#93c5fd;
+  --otp-field-bg:#080f20; --otp-field-border:#334155; --otp-field-text:#ffffff; --otp-placeholder:#64748b;
+  --otp-chip-bg:rgba(30,41,59,.72); --otp-chip-border:rgba(148,163,184,.2); --otp-chip-text:#dbeafe; --otp-chip-icon:#93c5fd;
+  --otp-link:#bfdbfe; --otp-foot:#718096; --otp-error:#fca5a5; --otp-info:#86efac; --otp-focus:#60a5fa; --otp-focus-ring:rgba(59,130,246,.18);
+  --otp-toggle-bg:rgba(15,23,42,.8); --otp-toggle-border:#334155; --otp-toggle-text:#e2e8f0;
+  color-scheme:dark;
+}
+.site-otp-theme{position:absolute;top:18px;right:18px;display:grid;place-items:center;width:42px;height:42px;border-radius:12px;border:1px solid var(--otp-toggle-border);background:var(--otp-toggle-bg);color:var(--otp-toggle-text);font-size:19px;cursor:pointer;backdrop-filter:blur(10px);transition:transform .15s ease,border-color .15s ease}
+.site-otp-theme:hover{transform:translateY(-1px);border-color:var(--otp-focus)}
+.site-otp-theme:focus-visible,.site-otp-resend:focus-visible,.site-otp-submit:focus-visible{outline:2px solid var(--otp-focus);outline-offset:2px}
+.site-otp-card{width:min(100%,440px);padding:clamp(24px,5vw,40px);border:1px solid var(--otp-card-border);border-radius:24px;background:var(--otp-card);box-shadow:var(--otp-shadow);backdrop-filter:blur(18px)}
+.site-otp-logo{width:54px;height:54px;display:grid;place-items:center;border-radius:16px;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-size:25px;margin-bottom:24px}
+.site-otp-eyebrow{font-size:11px;letter-spacing:.18em;font-weight:800;color:var(--otp-eyebrow);margin:0 0 9px}
+.site-otp-card h1{font-size:clamp(25px,5vw,32px);font-weight:800;letter-spacing:-.04em;margin:0;color:var(--otp-text)}
+.site-otp-description{color:var(--otp-muted);line-height:1.65;font-size:14px;margin:12px 0 22px}
+.site-otp-email{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1px solid var(--otp-chip-border);border-radius:12px;background:var(--otp-chip-bg);font-size:13px;color:var(--otp-chip-text);margin-bottom:22px;overflow-wrap:anywhere}
+.site-otp-email svg{flex-shrink:0;color:var(--otp-chip-icon)}
+.site-otp-card form label{display:block;font-size:13px;font-weight:650;margin-bottom:8px;color:var(--otp-label)}
+.site-otp-card form input{width:100%;box-sizing:border-box;background:var(--otp-field-bg);border:1px solid var(--otp-field-border);border-radius:12px;padding:14px;color:var(--otp-field-text);font-size:19px;letter-spacing:.28em;outline:none;transition:border-color .15s ease,box-shadow .15s ease}
+.site-otp-card form input::placeholder{color:var(--otp-placeholder);letter-spacing:.12em;font-size:15px}
+.site-otp-card form input:focus{border-color:var(--otp-focus);box-shadow:0 0 0 3px var(--otp-focus-ring)}
+.site-otp-submit{width:100%;margin-top:15px;border:0;border-radius:12px;padding:14px 16px;display:flex;justify-content:center;align-items:center;gap:9px;background:linear-gradient(100deg,#2563eb,#7c3aed);color:#fff;font-weight:750;cursor:pointer}
 .site-otp-submit:disabled,.site-otp-resend:disabled{opacity:.55;cursor:not-allowed}
-.site-otp-resend{display:flex;align-items:center;justify-content:center;gap:8px;margin:16px auto 0;background:transparent;border:0;color:#bfdbfe;font-weight:650;font-size:13px;cursor:pointer}
-.site-otp-footnote{text-align:center;color:#718096;font-size:11px;margin:24px 0 0}
-.site-otp-error{font-size:13px;color:#fca5a5;margin:8px 0 0}
+.site-otp-resend{display:flex;align-items:center;justify-content:center;gap:8px;margin:16px auto 0;background:transparent;border:0;color:var(--otp-link);font-weight:650;font-size:13px;cursor:pointer}
+.site-otp-footnote{text-align:center;color:var(--otp-foot);font-size:11px;margin:24px 0 0}
+.site-otp-error{font-size:13px;color:var(--otp-error);margin:8px 0 0}
+.site-otp-info{font-size:13px;color:var(--otp-info);margin:8px 0 0}
