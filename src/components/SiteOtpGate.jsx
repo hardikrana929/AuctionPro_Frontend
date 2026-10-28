@@ -17,8 +17,19 @@ export default function SiteOtpGate({ onVerified }) {
       setEmailSent(true); setOtp("");
       toast.success("Verification code sent to the configured email.");
     } catch (e) {
+<<<<<<< HEAD
       const message = e.response?.data?.message || "Could not send OTP. Please try again later.";
       setError(message); toast.error(message);
+=======
+      if (e.response?.status === 429 && e.response?.data?.retryAfterSeconds) {
+        // A code was already sent recently - not a failure, just wait before resending.
+        setCooldown(e.response.data.retryAfterSeconds);
+        setInfo("A code was sent recently. Check your inbox (and spam folder).");
+      } else {
+        const message = describeError(e, "Could not send OTP. Please try again later.");
+        setError(message); toast.error(message);
+      }
+>>>>>>> parent of 9b0c7a2 (change)
     } finally { setBusy(false); }
   };
 
