@@ -13,5 +13,18 @@ export default function ProtectedRoute({ role = "admin" }) {
   }
 
   if (user?.role === role) return <Outlet />;
-  return <Navigate to={user?.role === "admin" ? "/admin" : user?.role === "user" ? "/dashboard" : role === "user" ? "/login" : "/admin/login"} replace />;
+  return (
+    <Navigate
+      to={
+        user?.role === "admin"
+          ? "/admin"
+          : user?.role === "user"
+            ? "/dashboard"
+            : role === "user"
+              ? "/login"
+              : "/admin/login"
+      }
+      replace
+    />
+  );
 }
